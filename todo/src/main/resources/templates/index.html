@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Todo List</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f9;
+            color: #333;
+        }
+        header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .container {
+            width: 70%;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        input[type="text"], input[type="date"], select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        input[type="text"] { flex: 2; }
+        input[type="date"] { flex: 1; }
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            transition: background 0.3s;
+        }
+        button:hover { background: #0056b3; }
+        ul { list-style: none; padding: 0; }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .completed { text-decoration: line-through; color: gray; }
+        .actions a {
+            margin-left: 8px;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .toggle { background: #28a745; color: white; }
+        .toggle:hover { background: #1e7e34; }
+        .edit { background: #ffc107; color: black; }
+        .edit:hover { background: #e0a800; }
+        .delete { background: #dc3545; color: white; }
+        .delete:hover { background: #a71d2a; }
+        .deadline { font-size: 0.9rem; margin-left: 15px; }
+        .overdue { color: red; font-weight: bold; }
+        .filter-form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<header>Todo List</header>
+<div class="container">
+
+    <!-- Add Task -->
+    <form th:action="@{/add}" method="post" th:object="${newTodo}">
+        <input type="text" th:field="*{task}" placeholder="Enter task..." required>
+        <input type="date" th:field="*{deadline}" required>
+        <button type="submit">+ Add</button>
+    </form>
+
+    <!-- Filter Dropdown -->
+    <form class="filter-form" th:action="@{/}" method="get">
+        <select name="filter" onchange="this.form.submit()">
+            <option value="all" th:selected="${filter == 'all'}">All</option>
+            <option value="completed" th:selected="${filter == 'completed'}">Completed</option>
+            <option value="incomplete" th:selected="${filter == 'incomplete'}">Incomplete</option>
+            <option value="thisWeek" th:selected="${filter == 'thisWeek'}">This Week</option>
+            <option value="nextWeek" th:selected="${filter == 'nextWeek'}">Next Week</option>
+        </select>
+    </form>
+
+    <!-- Task List -->
+    <ul th:if="${todos != null}">
+        <li th:each="todo : ${todos}">
+            <div>
+                <span th:text="${todo.task}"
+                      th:classappend="${todo.completed} ? 'completed' : ''"></span>
+                <span class="deadline">
+                    Added: <span th:text="${todo.createdAt}"></span> |
+                    Deadline:
+                    <span th:text="${todo.deadline}"
+                          th:classappend="${!todo.completed and todo.deadline != null and todo.deadline.isBefore(T(java.time.LocalDate).now())} ? 'overdue' : ''">
+                    </span>
+                </span>
+            </div>
+            <div class="actions">
+                <!-- Dynamic Toggle Button -->
+                <a th:href="@{/toggle/{id}(id=${todo.id})}" class="toggle"
+                   th:text="${todo.completed} ? 'Mark as Incomplete' : 'Mark as Complete'"></a>
+                <a th:href="@{/edit/{id}(id=${todo.id})}" class="edit">Edit</a>
+                <a th:href="@{/delete/{id}(id=${todo.id})}" class="delete">Delete</a>
+            </div>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

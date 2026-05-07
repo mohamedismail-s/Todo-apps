@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Todo List</title>
+    <style>
+        body { font-family: "Segoe UI", Arial, sans-serif; background:#f4f6f9; margin:0; padding:0; }
+        header { background:#007bff; color:white; text-align:center; padding:20px; font-size:1.5rem; font-weight:bold; }
+        .container { width:70%; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+        h1,h2 { color:#007bff; margin-bottom:20px;}
+        form { display:flex; flex-direction:column; gap:15px; }
+        input, select, button { padding:10px; font-size:1rem; border-radius:8px; border:1px solid #ccc; }
+        button { background:#007bff; border:none; color:white; cursor:pointer; transition:0.3s; }
+        button:hover { background:#0056b3; }
+        .back-link { display:inline-block; margin-top:15px; text-decoration:none; color:#007bff; font-weight:bold; }
+        .back-link:hover { text-decoration:underline; }
+        ul { list-style:none; padding:0; margin-top:20px;}
+        li { display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; }
+        .completed { text-decoration:line-through; color:gray; }
+        .actions a { margin-left:8px; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:0.9rem; transition:0.3s; }
+        .toggle { background:#28a745; color:white; }
+        .toggle:hover { background:#1e7e34; }
+        .edit { background:#ffc107; color:black; }
+        .edit:hover { background:#e0a800; }
+        .delete { background:#dc3545; color:white; }
+        .delete:hover { background:#a71d2a; }
+        .deadline { font-size:0.9rem; margin-left:15px; }
+        .overdue { color:red; font-weight:bold; }
+        .filter-form { margin-bottom:20px; }
+    </style>
+</head>
+<body>
+
+<header>Todo List</header>
+<div class="container">
+
+    <h1>Edit Task</h1>
+    <form th:action="@{/update}" method="post" th:object="${todo}">
+        <input type="hidden" th:field="*{id}" />
+        <label>Task:</label>
+        <input type="text" th:field="*{task}" required />
+        <label>Deadline:</label>
+        <input type="date" th:field="*{deadline}" />
+        <label>Status:</label>
+        <select th:field="*{completed}">
+            <option th:value="false" th:text="'Incomplete'"></option>
+            <option th:value="true" th:text="'Completed'"></option>
+        </select>
+        <button type="submit">Update</button>
+    </form>
+
+    <a href="/" class="back-link">← Back to List</a>
+
+    <hr style="margin:20px 0;">
+
+    <h2>Add New Task</h2>
+    <form th:action="@{/add}" method="post" th:object="${newTodo}">
+        <input type="text" th:field="*{task}" placeholder="Enter task..." required>
+        <input type="date" th:field="*{deadline}" required>
+        <button type="submit">+ Add</button>
+    </form>
+
+    <!-- Filter -->
+    <form class="filter-form" th:action="@{/}" method="get">
+        <select name="filter" onchange="this.form.submit()">
+            <option value="all" th:selected="${filter=='all'}">All</option>
+            <option value="completed" th:selected="${filter=='completed'}">Completed</option>
+            <option value="incomplete" th:selected="${filter=='incomplete'}">Incomplete</option>
+            <option value="thisWeek" th:selected="${filter=='thisWeek'}">This Week</option>
+            <option value="nextWeek" th:selected="${filter=='nextWeek'}">Next Week</option>
+        </select>
+    </form>
+
+    <ul th:if="${todos != null}">
+        <li th:each="todo : ${todos}">
+            <div>
+                <span th:text="${todo.task}" th:classappend="${todo.completed} ? 'completed' : ''"></span>
+                <span class="deadline">
+                    Added: <span th:text="${todo.createdAt}"></span> |
+                    Deadline:
+                    <span th:text="${todo.deadline}"
+                          th:classappend="${!todo.completed and todo.deadline != null and todo.deadline.isBefore(T(java.time.LocalDate).now())} ? 'overdue' : ''">
+                    </span>
+                </span>
+            </div>
+            <div class="actions">
+                <a th:href="@{/toggle/{id}(id=${todo.id})}" class="toggle"
+                   th:text="${todo.completed} ? 'Mark as Incomplete' : 'Mark as Complete'"></a>
+                <a th:href="@{/edit/{id}(id=${todo.id})}" class="edit">Edit</a>
+                <a th:href="@{/delete/{id}(id=${todo.id})}" class="delete">Delete</a>
+            </div>
+        </li>
+    </ul>
+
+</div>
+</body>
+</html>
